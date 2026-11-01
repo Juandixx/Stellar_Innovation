@@ -1,0 +1,12 @@
+{% extends 'main/base.html' %}
+{% block title %}Inicio de sesión cancelado - Stellar Innovation{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h1>Inicio de sesión cancelado</h1>
+        <p class="sub">No se completó el acceso con Google. Puedes intentarlo de nuevo o ingresar con tu correo.</p>
+        <a href="{% url 'login' %}" class="btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Volver a iniciar sesión</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+
+{% extends 'main/base_admin.html' %}
+
+{% block title %}Gestionar roles - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="admin-panel">
+
+    <div class="admin-encabezado">
+        <div>
+            <p class="admin-eyebrow">STELLAR INNOVATION</p>
+            <h1>Gestionar roles</h1>
+            <p>Administra los permisos y roles de los usuarios registrados.</p>
+        </div>
+
+        <span class="admin-rol">Administrador</span>
+    </div>
+
+    <h2 class="admin-subtitulo">Usuarios registrados</h2>
+
+    <div class="admin-tabla-roles">
+
+        <div class="admin-roles-header">
+            <span>Usuario</span>
+            <span>Correo electrónico</span>
+            <span>Rol actual</span>
+            <span>Acciones</span>
+        </div>
+
+        {% for usuario in usuarios %}
+
+            <div class="admin-roles-fila">
+
+                <div class="admin-usuario-info">
+                    <strong>{{ usuario.first_name|default:usuario.username }}</strong>
+                    <small>@{{ usuario.username }}</small>
+                </div>
+
+                <span>{{ usuario.email|default:"Sin correo" }}</span>
+
+                <span>
+                    {% if usuario.usuario.rol == 'administrador' %}
+                        <span class="rol-badge rol-admin">Administrador</span>
+                    {% else %}
+                        <span class="rol-badge rol-cliente">Cliente</span>
+                    {% endif %}
+                </span>
+
+                <div>
+                    {% if usuario == request.user or usuario.is_superuser %}
+                        <span class="rol-protegido">Protegido</span>
+                    {% else %}
+                        <form method="POST" class="form-cambiar-rol">
+                            {% csrf_token %}
+
+                            <input type="hidden" name="usuario_id" value="{{ usuario.id }}">
+
+                            <select name="rol">
+                                <option value="cliente"
+                                    {% if usuario.usuario.rol == 'cliente' %}selected{% endif %}>
+                                    Cliente
+                                </option>
+
+                                <option value="administrador"
+                                    {% if usuario.usuario.rol == 'administrador' %}selected{% endif %}>
+                                    Administrador
+                                </option>
+                            </select>
+
+                            <button type="submit">Actualizar</button>
+                        </form>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        {% empty %}
+
+            <p class="admin-vacio">Todavía no hay usuarios registrados.</p>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endblock %}

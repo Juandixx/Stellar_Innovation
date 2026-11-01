@@ -1,0 +1,12 @@
+{% extends 'main/base.html' %}
+{% block title %}No se pudo iniciar sesión - Stellar Innovation{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h1>No pudimos iniciar tu sesión</h1>
+        <p class="sub">Ocurrió un problema al comunicarnos con Google. Inténtalo de nuevo en unos minutos.</p>
+        <a href="{% url 'login' %}" class="btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Volver a iniciar sesión</a>
+    </div>
+</div>
+{% endblock %}

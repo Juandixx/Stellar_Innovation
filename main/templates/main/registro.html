@@ -1,0 +1,30 @@
+{% extends 'main/base.html' %}
+{% block title %}Registro - Stellar Innovation{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h1>Crear cuenta</h1>
+        <p class="sub">Regístrate como cliente para apartar productos.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="campo">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}<div class="ayuda">{{ field.help_text|safe }}</div>{% endif %}
+                {% for error in field.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn">Registrarme</button>
+        </form>
+
+        {% include 'main/_google_btn.html' %}
+        <p class="auth-pie">¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
+    </div>
+</div>
+{% endblock %}

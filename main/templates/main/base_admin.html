@@ -1,0 +1,75 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Administración - Stellar Innovation{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'main/CSS/base.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <aside class="admin-sidebar">
+
+        <a href="{% url 'home' %}" class="admin-logo">
+            <span class="logo-estrella">★</span>
+            <span>STELLAR<br>INNOVATION</span>
+        </a>
+        <nav class="admin-nav">
+
+            <a href="{% url 'panel_administrador' %}" class="admin-nav-link">
+                <span>▤</span>
+                Panel principal
+            </a>
+
+            <a href="{% url 'admin_gestionar_roles' %}"
+            class="admin-nav-link {% if request.resolver_match.url_name == 'admin_gestionar_roles' %}activo{% endif %}">
+                <span>♙</span>
+                Gestionar roles
+            </a>
+
+        </nav>
+
+        <form method="POST" action="{% url 'logout' %}" class="admin-logout-form">
+        {% csrf_token %}
+        <button type="submit" class="admin-logout">
+            <span>↪</span>
+            Cerrar sesión
+        </button>
+        </form>
+
+        <div class="admin-sidebar-footer">
+            <span>PANEL ADMINISTRATIVO</span>
+        </div>
+
+    </aside>
+
+    <main class="admin-main">
+
+        {% if messages %}
+            <div class="admin-mensajes">
+                {% for message in messages %}
+                    <div class="mensaje {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+</body>
+</html>

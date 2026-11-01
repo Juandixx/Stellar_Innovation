@@ -1,0 +1,41 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ producto.nombre }} - Stellar Innovation{% endblock %}
+
+{% block content %}
+<a href="{% url 'home' %}" class="volver">Volver al catálogo</a>
+
+<section class="detalle">
+    <div class="detalle-img">
+        {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}
+            <span class="sin-imagen">Sin imagen</span>
+        {% endif %}
+    </div>
+
+    <div class="detalle-info">
+        <p class="eyebrow">{{ producto.categoria.nombre }}{% if producto.marca %} · {{ producto.marca }}{% endif %}</p>
+        <h1 class="titulo">{{ producto.nombre }}</h1>
+        <p class="detalle-precio">${{ producto.precio|floatformat:"0g" }}</p>
+
+        <p class="card-estado">
+            {% if producto.stock == 0 %}Agotado
+            {% elif producto.stock <= 5 %}Quedan {{ producto.stock }} unidades
+            {% else %}Disponible ({{ producto.stock }} unidades){% endif %}
+        </p>
+
+        <h3 class="detalle-sub">Descripción</h3>
+        <p class="detalle-texto">{{ producto.descripcion|linebreaksbr }}</p>
+
+        {% if producto.caracteristicas %}
+        <h3 class="detalle-sub">Características</h3>
+        <p class="detalle-texto">{{ producto.caracteristicas|linebreaksbr }}</p>
+        {% endif %}
+
+        {# TODO: conectar con el carrito (RF4) #}
+        <button type="button" class="btn btn-detalle" {% if producto.stock == 0 %}disabled{% endif %}>
+            {% if producto.stock == 0 %}No disponible{% else %}Agregar al carrito{% endif %}
+        </button>
+    </div>
+</section>
+{% endblock %}

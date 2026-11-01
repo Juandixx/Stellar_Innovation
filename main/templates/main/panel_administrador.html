@@ -1,0 +1,73 @@
+
+{% extends 'main/base_admin.html' %}
+
+{% block title %}Panel administrador - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="admin-panel">
+
+    <div class="admin-encabezado">
+        <div>
+            <p class="admin-eyebrow">STELLAR INNOVATION</p>
+            <h1>Panel de administración</h1>
+            <p>Bienvenido, {{ user.first_name|default:user.username }}.</p>
+        </div>
+
+        <span class="admin-rol">Administrador</span>
+    </div>
+
+    <h2 class="admin-subtitulo">Resumen general</h2>
+
+    <div class="admin-estadisticas">
+
+        <article class="admin-card">
+            <span>Productos registrados</span>
+            <strong>{{ productos_total }}</strong>
+            <small>Total de productos</small>
+        </article>
+
+        <article class="admin-card">
+            <span>Productos activos</span>
+            <strong>{{ productos_activos }}</strong>
+            <small>Disponibles en el catálogo</small>
+        </article>
+
+        <article class="admin-card">
+            <span>Categorías</span>
+            <strong>{{ categorias_total }}</strong>
+            <small>Categorías disponibles</small>
+        </article>
+
+        <article class="admin-card">
+            <span>Clientes</span>
+            <strong>{{ clientes_total }}</strong>
+            <small>Usuarios registrados</small>
+        </article>
+
+        <article class="admin-card">
+            <span>Apartados pendientes</span>
+            <strong>{{ apartados_pendientes }}</strong>
+            <small>Solicitudes por gestionar</small>
+        </article>
+
+    </div>
+
+    <h2 class="admin-subtitulo">Últimos apartados</h2>
+
+    <div class="admin-tabla">
+        {% for apartado in apartados_recientes %}
+            <div class="admin-fila">
+                <span>#{{ apartado.id }}</span>
+                <span>{{ apartado.cliente.first_name|default:apartado.cliente.username }}</span>
+                <span>{{ apartado.get_estado_display }}</span>
+                <span>{{ apartado.fecha|date:"d/m/Y H:i" }}</span>
+            </div>
+        {% empty %}
+            <p class="admin-vacio">Todavía no hay apartados registrados.</p>
+        {% endfor %}
+    </div>
+
+</section>
+
+{% endblock %}

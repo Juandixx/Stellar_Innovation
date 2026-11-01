@@ -1,0 +1,29 @@
+{% extends 'main/base.html' %}
+{% block title %}Ingresar - Stellar Innovation{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h1>Iniciar sesión</h1>
+        <p class="sub">Accede para apartar productos y ver tus solicitudes.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for error in form.non_field_errors %}
+                <p class="error">{{ error }}</p>
+            {% endfor %}
+
+            {% for field in form %}
+            <div class="campo">
+                {{ field.label_tag }}
+                {{ field }}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn">Ingresar</button>
+        </form>
+        {% include 'main/_google_btn.html' %}
+        <p class="auth-pie">¿No tienes cuenta? <a href="{% url 'registro' %}">Regístrate</a></p>
+    </div>
+</div>
+{% endblock %}

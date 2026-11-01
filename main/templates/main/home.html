@@ -1,0 +1,53 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Catálogo - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<nav class="pills">
+    <a href="{% url 'home' %}" class="pill {% if categoria_activa is None %}activa{% endif %}">Todos</a>
+    {% for c in categorias %}
+        <a href="?categoria={{ c.id }}" class="pill {% if c.id == categoria_activa %}activa{% endif %}">{{ c.nombre }}</a>
+    {% endfor %}
+</nav>
+
+<section class="encabezado">
+    <div>
+        <h1 class="titulo">Catálogo destacado</h1>
+    </div>
+</section>
+
+<section class="grid">
+    {% for p in productos %}
+    <article class="card {% if p.stock == 0 %}agotado{% endif %}">
+
+        <a href="{% url 'detalle_producto' p.id %}" class="card-img">
+            {% if p.imagen %}
+                <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}">
+            {% else %}
+                <span class="sin-imagen">Sin imagen</span>
+            {% endif %}
+        </a>
+
+        <div class="card-info">
+            <h3 class="card-nombre"><a href="{% url 'detalle_producto' p.id %}">{{ p.nombre }}</a></h3>
+            <p class="card-precio">${{ p.precio|floatformat:"0g" }}</p>
+
+            <p class="card-estado">
+                {% if p.stock == 0 %}Agotado
+                {% elif p.stock <= 5 %}Pocas unidades
+                {% else %}Disponible{% endif %}
+            </p>
+
+            {# TODO: conectar con el carrito (RF4) #}
+            <button type="button" class="btn" {% if p.stock == 0 %}disabled{% endif %}>
+                {% if p.stock == 0 %}No disponible{% else %}Agregar al carrito{% endif %}
+            </button>
+        </div>
+    </article>
+    {% empty %}
+    <p class="vacio">No se encontraron productos.</p>
+    {% endfor %}
+</section>
+
+{% endblock %}
