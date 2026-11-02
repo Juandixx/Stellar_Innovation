@@ -1,0 +1,42 @@
+{% extends 'main/base_admin.html' %}
+
+{% block title %}{{ titulo }} - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="admin-panel">
+
+    <div class="admin-encabezado">
+        <div>
+            <p class="admin-eyebrow">STELLAR INNOVATION</p>
+            <h1>{{ titulo }}</h1>
+            <p>{% if categoria %}Modifica el nombre, la descripción o la disponibilidad.{% else %}Completa los datos de la nueva categoría.{% endif %}</p>
+        </div>
+
+        <a href="{% url 'admin_categorias' %}" class="admin-btn admin-btn-secundario">← Volver</a>
+    </div>
+
+    <form method="post" class="admin-form-card admin-form-estrecho">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="form-errores">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            {% include 'main/_admin_campo.html' with campo=form.nombre extra_clase='span-2' %}
+            {% include 'main/_admin_campo.html' with campo=form.descripcion extra_clase='span-2' %}
+            {% include 'main/_admin_check.html' with campo=form.disponible extra_clase='span-2' %}
+        </div>
+
+        <div class="form-acciones">
+            <a href="{% url 'admin_categorias' %}" class="admin-btn admin-btn-secundario">Cancelar</a>
+            <button type="submit" class="admin-btn admin-btn-primario">
+                {% if categoria %}Guardar cambios{% else %}Crear categoría{% endif %}
+            </button>
+        </div>
+    </form>
+
+</section>
+
+{% endblock %}

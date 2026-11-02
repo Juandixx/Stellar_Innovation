@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'main/CSS/base.css' %}">
+    <link rel="stylesheet" href="{% static 'main/CSS/admin_crud.css' %}">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -25,15 +26,28 @@
             <span class="logo-estrella">★</span>
             <span>STELLAR<br>INNOVATION</span>
         </a>
-        <nav class="admin-nav">
+                <nav class="admin-nav">
 
-            <a href="{% url 'panel_administrador' %}" class="admin-nav-link">
+            <a href="{% url 'panel_administrador' %}"
+                class="admin-nav-link {% if request.resolver_match.url_name == 'panel_administrador' %}activo{% endif %}">
                 <span>▤</span>
                 Panel principal
             </a>
 
+            <a href="{% url 'admin_productos' %}"
+                class="admin-nav-link {% if 'admin_producto' in request.resolver_match.url_name %}activo{% endif %}">
+                <span>▦</span>
+                Productos
+            </a>
+
+            <a href="{% url 'admin_categorias' %}"
+                class="admin-nav-link {% if 'admin_categoria' in request.resolver_match.url_name %}activo{% endif %}">
+                <span>☰</span>
+                Categorías
+            </a>
+
             <a href="{% url 'admin_gestionar_roles' %}"
-            class="admin-nav-link {% if request.resolver_match.url_name == 'admin_gestionar_roles' %}activo{% endif %}">
+                class="admin-nav-link {% if request.resolver_match.url_name == 'admin_gestionar_roles' %}activo{% endif %}">
                 <span>♙</span>
                 Gestionar roles
             </a>
@@ -70,6 +84,6 @@
         {% endblock %}
 
     </main>
-
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

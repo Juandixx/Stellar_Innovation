@@ -1,0 +1,90 @@
+{% extends 'main/base_admin.html' %}
+
+{% block title %}{{ titulo }} - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="admin-panel">
+
+    <div class="admin-encabezado">
+        <div>
+            <p class="admin-eyebrow">STELLAR INNOVATION</p>
+            <h1>{{ titulo }}</h1>
+            <p>{% if producto %}Modifica los datos, el precio o las existencias.{% else %}Completa los datos del nuevo producto.{% endif %}</p>
+        </div>
+
+        <a href="{% url 'admin_productos' %}" class="admin-btn admin-btn-secundario">← Volver</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="admin-form-card">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="form-errores">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            {% include 'main/_admin_campo.html' with campo=form.nombre extra_clase='span-2' %}
+            {% include 'main/_admin_campo.html' with campo=form.marca %}
+            {% include 'main/_admin_campo.html' with campo=form.categoria %}
+            {% include 'main/_admin_campo.html' with campo=form.precio %}
+            {% include 'main/_admin_campo.html' with campo=form.stock %}
+            {% include 'main/_admin_campo.html' with campo=form.descripcion extra_clase='span-2' %}
+            {% include 'main/_admin_campo.html' with campo=form.caracteristicas extra_clase='span-2' %}
+
+            <div class="form-campo span-2 {% if form.imagen.errors %}con-error{% endif %}">
+                <label for="{{ form.imagen.id_for_label }}">{{ form.imagen.label }}</label>
+
+                <div class="img-zona">
+                    {% if producto and producto.imagen %}
+                        <img id="img-preview" src="{{ producto.imagen.url }}" alt="Imagen actual" class="img-preview">
+                    {% else %}
+                        <img id="img-preview" src="" alt="" class="img-preview" hidden>
+                    {% endif %}
+
+                    <div class="img-controles">
+                        {{ form.imagen }}
+                        {% if producto and producto.imagen %}
+                            <label class="check-fila" for="{{ form.quitar_imagen.id_for_label }}">
+                                {{ form.quitar_imagen }}
+                                <span>{{ form.quitar_imagen.label }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.imagen.help_text %}<small class="ayuda">{{ form.imagen.help_text }}</small>{% endif %}
+                {% for error in form.imagen.errors %}<small class="error-texto">{{ error }}</small>{% endfor %}
+            </div>
+
+            {% include 'main/_admin_check.html' with campo=form.activo extra_clase='span-2' %}
+        </div>
+
+        <div class="form-acciones">
+            <a href="{% url 'admin_productos' %}" class="admin-btn admin-btn-secundario">Cancelar</a>
+            <button type="submit" class="admin-btn admin-btn-primario">
+                {% if producto %}Guardar cambios{% else %}Crear producto{% endif %}
+            </button>
+        </div>
+    </form>
+
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var input = document.getElementById('{{ form.imagen.id_for_label }}');
+        var preview = document.getElementById('img-preview');
+        if (!input || !preview) return;
+
+        input.addEventListener('change', function () {
+            var archivo = input.files && input.files[0];
+            if (!archivo) return;
+            preview.src = URL.createObjectURL(archivo);
+            preview.hidden = false;
+        });
+    })();
+</script>
+{% endblock %}

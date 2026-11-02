@@ -1,0 +1,35 @@
+<dialog id="modal-eliminar" class="modal" aria-labelledby="modal-eliminar-titulo">
+    <h2 id="modal-eliminar-titulo">¿Eliminar?</h2>
+    <p id="modal-eliminar-texto"></p>
+    <form method="post" id="form-eliminar" action="">
+        {% csrf_token %}
+        <div class="modal-acciones">
+            <button type="button" class="modal-btn cancelar" id="cancelar-eliminar">Cancelar</button>
+            <button type="submit" class="modal-btn peligro">Eliminar</button>
+        </div>
+    </form>
+</dialog>
+
+<script>
+    (function () {
+        var modal = document.getElementById('modal-eliminar');
+        var form = document.getElementById('form-eliminar');
+        var texto = document.getElementById('modal-eliminar-texto');
+        if (!modal) return;
+
+        document.querySelectorAll('.btn-eliminar').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                form.action = btn.dataset.url;
+                texto.textContent = '«' + btn.dataset.nombre + '». ' + (btn.dataset.aviso || '');
+                modal.showModal();
+            });
+        });
+
+        document.getElementById('cancelar-eliminar')
+            .addEventListener('click', function () { modal.close(); });
+
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) modal.close();
+        });
+    })();
+</script>

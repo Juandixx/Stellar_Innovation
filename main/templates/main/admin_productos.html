@@ -1,0 +1,130 @@
+{% extends 'main/base_admin.html' %}
+
+{% block title %}Productos - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="admin-panel">
+
+    <div class="admin-encabezado">
+        <div>
+            <p class="admin-eyebrow">STELLAR INNOVATION</p>
+            <h1>Productos</h1>
+            <p>Administra el catálogo, los precios y las existencias.</p>
+        </div>
+
+        <a href="{% url 'admin_producto_crear' %}" class="admin-btn admin-btn-primario">+ Nuevo producto</a>
+    </div>
+
+    <form method="get" class="admin-filtros">
+        <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre o marca...">
+
+        <select name="categoria">
+            <option value="">Todas las categorías</option>
+            {% for c in categorias %}
+                <option value="{{ c.id }}" {% if c.id == categoria_activa %}selected{% endif %}>
+                    {{ c.nombre }}{% if not c.disponible %} (no disponible){% endif %}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="estado">
+            <option value="">Todos los estados</option>
+            <option value="activos"   {% if estado == 'activos' %}selected{% endif %}>Activos</option>
+            <option value="inactivos" {% if estado == 'inactivos' %}selected{% endif %}>Inactivos</option>
+            <option value="agotados"  {% if estado == 'agotados' %}selected{% endif %}>Agotados</option>
+        </select>
+
+        <button type="submit" class="admin-btn admin-btn-primario">Filtrar</button>
+        {% if q or categoria_activa or estado %}
+            <a href="{% url 'admin_productos' %}" class="admin-btn admin-btn-secundario">Limpiar</a>
+        {% endif %}
+    </form>
+
+    <div class="admin-tabla-scroll">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th class="col-acciones">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in page_obj %}
+                <tr>
+                    <td>
+                        {% if p.imagen %}
+                            <img src="{{ p.imagen.url }}" alt="" class="thumb">
+                        {% else %}
+                            <span class="thumb thumb-vacio">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ p.nombre }}</strong>
+                        {% if p.marca %}<small>{{ p.marca }}</small>{% endif %}
+                    </td>
+                    <td>{{ p.categoria.nombre }}</td>
+                    <td>${{ p.precio|floatformat:"0g" }}</td>
+                    <td>
+                        {% if p.stock == 0 %}
+                            <span class="estado-badge danger">Agotado</span>
+                        {% elif p.stock <= 5 %}
+                            <span class="estado-badge warn">{{ p.stock }} u.</span>
+                        {% else %}
+                            {{ p.stock }} u.
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.activo %}
+                            <span class="estado-badge ok">Activo</span>
+                        {% else %}
+                            <span class="estado-badge off">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-acciones">
+                        <a href="{% url 'admin_producto_editar' p.id %}" class="admin-btn admin-btn-secundario admin-btn-sm">Editar</a>
+                        <button type="button" class="admin-btn admin-btn-peligro admin-btn-sm btn-eliminar"
+                                data-url="{% url 'admin_producto_eliminar' p.id %}"
+                                data-nombre="{{ p.nombre }}"
+                                data-aviso="Si tiene apartados asociados no se borrará: se marcará como inactivo.">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="admin-vacio">
+                        {% if q or categoria_activa or estado %}
+                            No se encontraron productos con esos filtros.
+                        {% else %}
+                            Todavía no hay productos. ¡Crea el primero!
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="admin-paginacion" aria-label="Paginación">
+        {% if page_obj.has_previous %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">← Anterior</a>
+        {% endif %}
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente →</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+</section>
+
+{% include 'main/_admin_modal_eliminar.html' %}
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'main/base_admin.html' %}
+
+{% block title %}Categorías - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="admin-panel">
+
+    <div class="admin-encabezado">
+        <div>
+            <p class="admin-eyebrow">STELLAR INNOVATION</p>
+            <h1>Categorías</h1>
+            <p>Organiza los productos del catálogo por categorías.</p>
+        </div>
+
+        <a href="{% url 'admin_categoria_crear' %}" class="admin-btn admin-btn-primario">+ Nueva categoría</a>
+    </div>
+
+    <form method="get" class="admin-filtros">
+        <input type="text" name="q" value="{{ q }}" placeholder="Buscar categoría...">
+        <button type="submit" class="admin-btn admin-btn-primario">Buscar</button>
+        {% if q %}
+            <a href="{% url 'admin_categorias' %}" class="admin-btn admin-btn-secundario">Limpiar</a>
+        {% endif %}
+    </form>
+
+    <div class="admin-tabla-scroll">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Productos</th>
+                    <th>Estado</th>
+                    <th class="col-acciones">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in categorias %}
+                <tr>
+                    <td><strong>{{ c.nombre }}</strong></td>
+                    <td>{{ c.descripcion|default:"—"|truncatechars:70 }}</td>
+                    <td>{{ c.num_productos }}</td>
+                    <td>
+                        {% if c.disponible %}
+                            <span class="estado-badge ok">Disponible</span>
+                        {% else %}
+                            <span class="estado-badge off">No disponible</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-acciones">
+                        <a href="{% url 'admin_categoria_editar' c.id %}" class="admin-btn admin-btn-secundario admin-btn-sm">Editar</a>
+                        <button type="button" class="admin-btn admin-btn-peligro admin-btn-sm btn-eliminar"
+                                data-url="{% url 'admin_categoria_eliminar' c.id %}"
+                                data-nombre="{{ c.nombre }}"
+                                data-aviso="Si tiene productos asociados no se borrará: se marcará como no disponible.">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="admin-vacio">
+                        {% if q %}No se encontraron categorías.{% else %}Todavía no hay categorías. ¡Crea la primera!{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+{% include 'main/_admin_modal_eliminar.html' %}
+
+{% endblock %}

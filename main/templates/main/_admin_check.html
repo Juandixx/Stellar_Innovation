@@ -1,0 +1,8 @@
+<div class="form-campo {{ extra_clase }}">
+    <label class="check-fila" for="{{ campo.id_for_label }}">
+        {{ campo }}
+        <span>{{ campo.label }}</span>
+    </label>
+    {% if campo.help_text %}<small class="ayuda">{{ campo.help_text }}</small>{% endif %}
+    {% for error in campo.errors %}<small class="error-texto">{{ error }}</small>{% endfor %}
+</div>
