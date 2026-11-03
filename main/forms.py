@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
+import re
 from django.db.models import Q
 from .models import Categoria, Producto
 
@@ -176,3 +177,64 @@ class ProductoForm(_EstiloAdminMixin, forms.ModelForm):
         if commit:
             producto.save()
         return producto
+
+class PerfilForm(forms.Form):
+    first_name = forms.CharField(label='Nombre', max_length=150)
+    last_name = forms.CharField(label='Apellido', max_length=150, required=False)
+    email = forms.EmailField(label='Correo electrónico')
+    telefono = forms.CharField(label='Teléfono', max_length=20, required=False)
+
+    def __init__(self, *args, user, perfil, **kwargs):
+        self.user = user
+        self.perfil = perfil
+        kwargs.setdefault('initial', {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'telefono': perfil.telefono,
+        })
+        super().__init__(*args, **kwargs)
+
+        # Si la cuenta está vinculada a Google, el correo no se edita
+        if user.socialaccount_set.exists():
+            self.fields['email'].disabled = True
+            self.fields['email'].help_text = ('Tu correo está vinculado a tu cuenta de Google y no se puede cambiar aquí')
+
+    def clean_first_name(self):
+        return ' '.join(self.cleaned_data['first_name'].split())
+    
+    def clean_last_name(self):
+        return ' '.join(self.cleaned_data['last_name'].split())
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower()
+        en_uso = (
+            User.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists()
+            or User.objects.filter(username__iexact=email).exclude(pk=self.user.pk).exists()
+        )
+        if en_uso:
+            raise forms.ValidationError('Este correo ya está en uso por otra cuenta.')
+        return email
+
+    def clean_telefono(self):
+        telefono = self.cleaned_data['telefono'].strip()
+        if telefono and not re.fullmatch(r'[0-9+\-\s()]{7,20}', telefono):
+            raise forms.ValidationError('Ingresa un teléfono válido (solo números, espacios, + y -).')
+        return telefono
+
+    def save(self):
+        user, perfil = self.user, self.perfil
+        email_anterior = user.email
+        nuevo_email = self.cleaned_data['email']
+
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+
+        # En esta app el correo hace de nombre de usuario: si eran iguales, siguen iguales
+        if email_anterior and user.username.lower() == email_anterior.lower():
+            user.username = nuevo_email
+        user.email = nuevo_email
+        user.save()
+
+        perfil.telefono = self.cleaned_data['telefono']
+        perfil.save(update_fields=['telefono'])

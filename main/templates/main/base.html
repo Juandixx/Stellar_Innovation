@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'main/CSS/base.css' %}">
+    <link rel="stylesheet" href="{% static 'main/CSS/carrito.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -35,6 +36,13 @@
                     {{ user.first_name|default:user.username }}
                 </span>
 
+                <!-- Mi perfil -->
+                <a href="{% url 'perfil' %}" class="icono-btn" title="Mi perfil" aria-label="Mi perfil">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+                    </svg>
+                </a>
 
                 {% if user.is_superuser or user.usuario.rol == 'administrador' %}
                     <a href="{% url 'panel_administrador' %}"
@@ -111,14 +119,14 @@
             {% endif %}
 
             <!-- Carrito -->
-            <a href="#" class="icono-btn" aria-label="Carrito">
+            <a href="{% url 'ver_carrito' %}" class="icono-btn" aria-label="Carrito" title="Carrito">
                 <svg viewBox="0 0 24 24">
                     <path d="M6 6h15l-1.5 9h-12z"/>
                     <path d="M6 6L5 3H2"/>
                     <circle cx="9" cy="20" r="1.4"/>
                     <circle cx="18" cy="20" r="1.4"/>
                 </svg>
-                <span class="badge">0</span>
+                {% if carrito_cantidad %}<span class="badge">{{ carrito_cantidad }}</span>{% endif %}
             </a>
 
         </div>

@@ -10,6 +10,14 @@ from .models import Producto, Categoria, Usuario, Apartado, DetalleApartado
 from .forms import RegistroForm, LoginForm, CategoriaForm, ProductoForm
 from .decorators import admin_required
 from django.contrib.auth import logout
+from django.db import transaction
+from django.db.models import F
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
+from .models import Carrito, ItemCarrito, DetalleApartado
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from .forms import PerfilForm
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
@@ -400,3 +408,262 @@ def admin_producto_eliminar(request, producto_id):
         messages.success(request, f'El producto «{nombre}» se eliminó correctamente.')
 
     return redirect('admin_productos')
+
+
+# PERFIL DE USUARIO
+@login_required
+def perfil(request):
+    user = request.user
+    perfil_usuario, _ = Usuario.objects.get_or_create(user=user)
+    es_admin = user.is_superuser or perfil_usuario.rol == 'administrador'
+
+    # Las cuentas que entran solo con Google no tienen contraseña en el sitio
+    puede_cambiar_password = user.has_usable_password()
+
+    form_datos = PerfilForm(user=user, perfil=perfil_usuario)
+    form_password = PasswordChangeForm(user) if puede_cambiar_password else None
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        if accion == 'datos':
+            form_datos = PerfilForm(request.POST, user=user, perfil=perfil_usuario)
+            if form_datos.is_valid():
+                form_datos.save()
+                messages.success(request, 'La información ha sido actualizada.')
+                return redirect('perfil')
+
+        elif accion == 'password' and puede_cambiar_password:
+            form_password = PasswordChangeForm(user, request.POST)
+            if form_password.is_valid():
+                user = form_password.save()
+                update_session_auth_hash(request, user)   # no cierra la sesión al cambiar la clave
+                messages.success(request, 'Tu contraseña ha sido actualizada.')
+                return redirect('perfil')
+
+    # Historial de apartados (el más reciente primero)
+    apartados = list(
+        Apartado.objects.filter(cliente=user).prefetch_related('detalles__producto')
+    )
+
+    return render(request, 'main/perfil.html', {
+        'form_datos': form_datos,
+        'form_password': form_password,
+        'puede_cambiar_password': puede_cambiar_password,
+        'perfil_usuario': perfil_usuario,
+        'es_admin': es_admin,
+        'apartados': apartados,
+        'total_apartados': len(apartados),
+        'pendientes': sum(1 for a in apartados if a.estado == 'pendiente'),
+        'mostrar_historial': bool(apartados) or not es_admin,
+    })
+
+
+# CARRITO Y SOLICITUD DE APARTADO
+class _StockCambio(Exception):
+    """El stock cambió mientras se confirmaba el apartado."""
+
+
+def _destino_seguro(request, defecto='home'):
+    """Vuelve a la página desde donde se hizo la acción (solo rutas del propio sitio)."""
+    destino = request.POST.get('next', '')
+    if destino and url_has_allowed_host_and_scheme(destino, allowed_hosts={request.get_host()}):
+        return destino
+    return defecto
+
+
+def _leer_cantidad(request):
+    try:
+        return int(request.POST.get('cantidad', 1))
+    except (TypeError, ValueError):
+        return None
+
+
+@require_POST
+def agregar_al_carrito(request, producto_id):
+    destino = _destino_seguro(request)
+
+    if not request.user.is_authenticated:
+        messages.info(request, 'Inicia sesión para agregar productos al carrito.')
+        return redirect('login')
+
+    producto = get_object_or_404(
+        Producto, pk=producto_id, activo=True, categoria__disponible=True
+    )
+
+    cantidad = _leer_cantidad(request)
+    if cantidad is None or cantidad < 1:
+        messages.error(request, 'Ingresa una cantidad válida (mínimo 1).')
+        return redirect(destino)
+
+    carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
+    item = ItemCarrito.objects.filter(carrito=carrito, producto=producto).first()
+    en_carrito = item.cantidad if item else 0
+
+    # La cantidad no puede superar el stock disponible (CU6)
+    if en_carrito + cantidad > producto.stock:
+        disponibles = max(producto.stock - en_carrito, 0)
+        if producto.stock == 0:
+            messages.error(request, f'«{producto.nombre}» está agotado.')
+        elif disponibles == 0:
+            messages.error(
+                request,
+                f'Ya tienes en tu carrito las {producto.stock} unidades disponibles de «{producto.nombre}».'
+            )
+        elif en_carrito:
+            messages.error(
+                request,
+                f'Solo hay {producto.stock} unidades de «{producto.nombre}» y ya tienes '
+                f'{en_carrito} en tu carrito. Puedes agregar {disponibles} más como máximo.'
+            )
+        else:
+            messages.error(
+                request,
+                f'Solo hay {producto.stock} unidades disponibles de «{producto.nombre}». '
+                f'La cantidad máxima es {producto.stock}.'
+            )
+        return redirect(destino)
+
+    if item:
+        item.cantidad = en_carrito + cantidad
+        item.save(update_fields=['cantidad'])
+    else:
+        ItemCarrito.objects.create(carrito=carrito, producto=producto, cantidad=cantidad)
+
+    messages.success(request, f'«{producto.nombre}» se agregó a tu carrito.')
+    return redirect(destino)
+
+
+@login_required
+def ver_carrito(request):
+    carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
+    items = list(carrito.items.select_related('producto__categoria').order_by('id'))
+
+    total = 0
+    unidades = 0
+    hay_problemas = False
+    for item in items:
+        p = item.producto
+        item.no_disponible = (not p.activo) or (not p.categoria.disponible)
+        item.excede = (not item.no_disponible) and item.cantidad > p.stock
+        if item.no_disponible or item.excede:
+            hay_problemas = True
+        total += item.subtotal
+        unidades += item.cantidad
+
+    return render(request, 'main/carrito.html', {
+        'items': items,
+        'total': total,
+        'unidades': unidades,
+        'hay_problemas': hay_problemas,
+    })
+
+
+@login_required
+@require_POST
+def actualizar_item_carrito(request, item_id):
+    item = get_object_or_404(
+        ItemCarrito.objects.select_related('producto'),
+        pk=item_id, carrito__cliente=request.user
+    )
+    producto = item.producto
+    cantidad = _leer_cantidad(request)
+
+    if cantidad is None or cantidad < 1:
+        messages.error(request, 'La cantidad mínima es 1. Si ya no lo quieres, usa «Quitar».')
+    elif producto.stock == 0:
+        messages.error(request, f'«{producto.nombre}» está agotado. Quítalo del carrito.')
+    elif cantidad > producto.stock:
+        messages.error(
+            request,
+            f'Solo hay {producto.stock} unidades disponibles de «{producto.nombre}». '
+            f'La cantidad máxima es {producto.stock}.'
+        )
+    else:
+        item.cantidad = cantidad
+        item.save(update_fields=['cantidad'])
+        messages.success(request, f'Cantidad de «{producto.nombre}» actualizada a {cantidad}.')
+
+    return redirect('ver_carrito')
+
+
+@login_required
+@require_POST
+def eliminar_item_carrito(request, item_id):
+    item = get_object_or_404(
+        ItemCarrito.objects.select_related('producto'),
+        pk=item_id, carrito__cliente=request.user
+    )
+    nombre = item.producto.nombre
+    item.delete()
+    messages.success(request, f'«{nombre}» se quitó del carrito.')
+    return redirect('ver_carrito')
+
+
+@login_required
+@require_POST
+def solicitar_apartado(request):
+    """CU7: verifica el stock de nuevo, registra el apartado y reserva las unidades."""
+    carrito = Carrito.objects.filter(cliente=request.user).first()
+    items = list(carrito.items.all()) if carrito else []
+
+    if not items:
+        messages.error(request, 'Tu carrito está vacío. Agrega productos antes de solicitar el apartado.')
+        return redirect('ver_carrito')
+
+    try:
+        with transaction.atomic():
+            ids = [i.producto_id for i in items]
+            productos = {
+                p.pk: p for p in Producto.objects.select_for_update().filter(pk__in=ids)
+            }
+
+            problemas = []
+            for item in items:
+                p = productos[item.producto_id]
+                if not p.activo or not p.categoria.disponible:
+                    problemas.append(f'«{p.nombre}» ya no está disponible. Quítalo del carrito.')
+                elif p.stock == 0:
+                    problemas.append(f'«{p.nombre}» se agotó. Quítalo del carrito.')
+                elif item.cantidad > p.stock:
+                    problemas.append(
+                        f'«{p.nombre}»: solo quedan {p.stock} unidades y pediste {item.cantidad}. '
+                        f'Ajusta la cantidad.'
+                    )
+
+            if problemas:
+                for texto in problemas:
+                    messages.error(request, texto)
+                return redirect('ver_carrito')
+
+            apartado = Apartado.objects.create(cliente=request.user)
+            for item in items:
+                p = productos[item.producto_id]
+                # Descuenta el stock (queda reservado para el cliente)
+                actualizado = Producto.objects.filter(
+                    pk=p.pk, stock__gte=item.cantidad
+                ).update(stock=F('stock') - item.cantidad)
+                if actualizado != 1:
+                    raise _StockCambio(p.nombre)
+                DetalleApartado.objects.create(
+                    apartado=apartado,
+                    producto=p,
+                    cantidad=item.cantidad,
+                    precio_unitario=p.precio,   # precio al momento de apartar
+                )
+
+            carrito.items.all().delete()
+
+    except _StockCambio as error:
+        messages.error(
+            request,
+            f'El stock de «{error}» cambió mientras confirmabas. Revisa tu carrito e inténtalo de nuevo.'
+        )
+        return redirect('ver_carrito')
+
+    messages.success(
+        request,
+        f'Tu solicitud de apartado #{apartado.pk} quedó registrada. '
+        f'Las unidades están reservadas para que las recojas en la tienda.'
+    )
+    return redirect(reverse('perfil') + '#historial')

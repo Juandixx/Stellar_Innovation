@@ -1,0 +1,159 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Mi perfil - Stellar Innovation{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'main/CSS/perfil.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Cabecera -->
+<section class="perfil-head">
+    <div class="perfil-avatar">{{ user.first_name|default:user.username|slice:":1"|upper }}</div>
+    <div>
+        <h1 class="titulo">{{ user.get_full_name|default:user.username }}</h1>
+        <div class="perfil-meta">
+            <span>{{ user.email|default:"Sin correo registrado" }}</span>
+            <span class="perfil-rol">{% if es_admin %}Administrador{% else %}Cliente{% endif %}</span>
+        </div>
+    </div>
+</section>
+
+<!-- Resumen -->
+<section class="perfil-stats">
+    <article class="perfil-stat">
+        <span>Solicitudes de apartado</span>
+        <strong>{{ total_apartados }}</strong>
+    </article>
+    <article class="perfil-stat">
+        <span>Pendientes de recoger</span>
+        <strong>{{ pendientes }}</strong>
+    </article>
+    <article class="perfil-stat">
+        <span>Miembro desde</span>
+        <strong class="sm">{{ perfil_usuario.fecha_registro|date:"d/m/Y" }}</strong>
+    </article>
+</section>
+
+<div class="perfil-dash">
+
+    <!-- Menú lateral -->
+    <nav class="perfil-nav" aria-label="Secciones del perfil">
+        <a href="#datos">Mis datos</a>
+        <a href="#seguridad">Seguridad</a>
+        {% if mostrar_historial %}<a href="#historial">Historial de apartados</a>{% endif %}
+    </nav>
+
+    <div class="perfil-contenido">
+
+        <!-- Datos personales -->
+        <section class="perfil-card" id="datos">
+            <h2>Mis datos</h2>
+            <p class="perfil-sub">Actualiza tu información personal.</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="datos">
+
+                <div class="perfil-form-grid">
+                    {% for field in form_datos %}
+                    <div class="campo {% if field.name == 'email' %}completo{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<span class="ayuda">{{ field.help_text }}</span>{% endif %}
+                        {% for error in field.errors %}<span class="error">{{ error }}</span>{% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="perfil-acciones">
+                    <button type="submit" class="btn">Guardar cambios</button>
+                    <a href="{% url 'perfil' %}" class="btn-cancelar">Cancelar</a>
+                </div>
+            </form>
+        </section>
+
+        <!-- Seguridad -->
+        <section class="perfil-card" id="seguridad">
+            <h2>Seguridad</h2>
+
+            {% if puede_cambiar_password %}
+                <p class="perfil-sub">Cambia la contraseña con la que ingresas.</p>
+
+                <form method="post" style="max-width: 360px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="password">
+
+                    {% for field in form_password %}
+                    <div class="campo">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<div class="ayuda">{{ field.help_text }}</div>{% endif %}
+                        {% for error in field.errors %}<span class="error">{{ error }}</span>{% endfor %}
+                    </div>
+                    {% endfor %}
+
+                    {% for error in form_password.non_field_errors %}<span class="error">{{ error }}</span>{% endfor %}
+
+                    <div class="perfil-acciones">
+                        <button type="submit" class="btn">Cambiar contraseña</button>
+                        <a href="{% url 'perfil' %}" class="btn-cancelar">Cancelar</a>
+                    </div>
+                </form>
+            {% else %}
+                <p class="perfil-nota">
+                    Tu cuenta inicia sesión con Google, por eso no tiene una contraseña en este sitio.
+                    Para cambiar tu clave de acceso, hazlo desde tu cuenta de Google.
+                </p>
+            {% endif %}
+        </section>
+
+        <!-- Historial de apartados -->
+        {% if mostrar_historial %}
+        <section class="perfil-card" id="historial">
+            <h2>Historial de apartados</h2>
+            <p class="perfil-sub">Tus solicitudes, de la más reciente a la más antigua.</p>
+
+            {% if apartados %}
+            <div class="perfil-tabla-scroll">
+                <table class="perfil-tabla">
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Fecha</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in apartados %}
+                        <tr>
+                            <td>#{{ a.id }}</td>
+                            <td>{{ a.fecha|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <ul>
+                                    {% for d in a.detalles.all %}
+                                    <li>{{ d.cantidad }} × {{ d.producto.nombre }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td class="total">${{ a.total|floatformat:"0g" }}</td>
+                            <td><span class="estado-pill {{ a.estado }}">{{ a.get_estado_display }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="perfil-nota">Aún no tienes solicitudes de apartado.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

@@ -32,10 +32,22 @@
         <p class="detalle-texto">{{ producto.caracteristicas|linebreaksbr }}</p>
         {% endif %}
 
-        {# TODO: conectar con el carrito (RF4) #}
-        <button type="button" class="btn btn-detalle" {% if producto.stock == 0 %}disabled{% endif %}>
-            {% if producto.stock == 0 %}No disponible{% else %}Agregar al carrito{% endif %}
-        </button>
+        {% if producto.stock > 0 %}
+        <form method="post" action="{% url 'agregar_al_carrito' producto.id %}" class="form-detalle-carrito">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+            <div class="cantidad-grupo">
+                <label for="cantidad">Cantidad</label>
+                <input type="number" id="cantidad" name="cantidad" value="1"
+                    min="1" max="{{ producto.stock }}" class="cantidad-input">
+            </div>
+
+            <button type="submit" class="btn btn-detalle">Agregar al carrito</button>
+        </form>
+        {% else %}
+        <button type="button" class="btn btn-detalle" disabled>No disponible</button>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

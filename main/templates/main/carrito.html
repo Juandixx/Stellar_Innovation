@@ -1,0 +1,105 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Mi carrito - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="encabezado">
+    <div>
+        <p class="eyebrow">Stellar Innovation</p>
+        <h1 class="titulo">Mi carrito</h1>
+    </div>
+</section>
+
+{% if items %}
+<div class="carrito-layout">
+
+    <div class="carrito-lista">
+        {% for item in items %}
+        <article class="carrito-item {% if item.no_disponible or item.excede %}con-problema{% endif %}">
+
+            <a href="{% url 'detalle_producto' item.producto.id %}" class="carrito-img">
+                {% if item.producto.imagen %}
+                    <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}">
+                {% else %}
+                    <span class="sin-imagen">Sin imagen</span>
+                {% endif %}
+            </a>
+
+            <div class="carrito-datos">
+                <h3 class="card-nombre">
+                    <a href="{% url 'detalle_producto' item.producto.id %}">{{ item.producto.nombre }}</a>
+                </h3>
+                {% if item.producto.marca %}<p class="carrito-marca">{{ item.producto.marca }}</p>{% endif %}
+                <p class="carrito-precio-unit">${{ item.producto.precio|floatformat:"0g" }} c/u</p>
+
+                {% if item.no_disponible %}
+                    <p class="carrito-alerta">Este producto ya no está disponible. Quítalo para poder continuar.</p>
+                {% elif item.excede %}
+                    <p class="carrito-alerta">
+                        {% if item.producto.stock == 0 %}
+                            Este producto se agotó. Quítalo para poder continuar.
+                        {% else %}
+                            Solo hay {{ item.producto.stock }} unidades disponibles. Ajusta la cantidad.
+                        {% endif %}
+                    </p>
+                {% endif %}
+
+                <form method="post" action="{% url 'actualizar_item_carrito' item.id %}" class="carrito-cantidad">
+                    {% csrf_token %}
+                    <label for="cantidad-{{ item.id }}">Cantidad</label>
+                    <input type="number" id="cantidad-{{ item.id }}" name="cantidad"
+                           value="{{ item.cantidad }}" min="1" max="{{ item.producto.stock }}"
+                           class="cantidad-input">
+                    <button type="submit" class="btn-mini">Actualizar</button>
+                </form>
+            </div>
+
+            <div class="carrito-lado">
+                <p class="carrito-subtotal">${{ item.subtotal|floatformat:"0g" }}</p>
+                <form method="post" action="{% url 'eliminar_item_carrito' item.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-quitar">Quitar</button>
+                </form>
+            </div>
+
+        </article>
+        {% endfor %}
+    </div>
+
+    <aside class="carrito-resumen">
+        <h2>Resumen</h2>
+
+        <div class="resumen-fila"><span>Productos</span><span>{{ items|length }}</span></div>
+        <div class="resumen-fila"><span>Unidades</span><span>{{ unidades }}</span></div>
+
+        <div class="resumen-total">
+            <span>Total</span>
+            <strong>${{ total|floatformat:"0g" }}</strong>
+        </div>
+
+        <p class="resumen-nota">
+            Al solicitar el apartado, las unidades quedan reservadas para ti.
+            El pago y la entrega se hacen en la tienda: aquí no se paga en línea.
+        </p>
+
+        <form method="post" action="{% url 'solicitar_apartado' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-resumen" {% if hay_problemas %}disabled{% endif %}>
+                Solicitar apartado
+            </button>
+        </form>
+
+        {% if hay_problemas %}
+            <p class="carrito-alerta">Corrige los productos marcados en rojo para poder continuar.</p>
+        {% endif %}
+
+        <a href="{% url 'home' %}" class="resumen-seguir">Seguir viendo productos</a>
+    </aside>
+
+</div>
+{% else %}
+    <p class="vacio">Tu carrito está vacío. <a href="{% url 'home' %}">Ver el catálogo</a></p>
+{% endif %}
+
+{% endblock %}

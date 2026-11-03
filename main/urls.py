@@ -11,6 +11,7 @@ urlpatterns = [
     path('producto/<int:producto_id>/', views.detalle_producto, name='detalle_producto'),
     path('administrador/', views.panel_administrador, name='panel_administrador'),
     path('administracion/roles/',views.admin_gestionar_roles, name='admin_gestionar_roles'),
+    path('perfil/', views.perfil, name='perfil'),
     
     # CRUD categorías
     path('administracion/categorias/', views.admin_categorias, name='admin_categorias'),
@@ -23,4 +24,11 @@ urlpatterns = [
     path('administracion/productos/nuevo/', views.admin_producto_crear, name='admin_producto_crear'),
     path('administracion/productos/<int:producto_id>/editar/', views.admin_producto_editar, name='admin_producto_editar'),
     path('administracion/productos/<int:producto_id>/eliminar/', views.admin_producto_eliminar, name='admin_producto_eliminar'),
+    
+    # Carrito
+    path('carrito/', views.ver_carrito, name='ver_carrito'),
+    path('carrito/agregar/<int:producto_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),
+    path('carrito/item/<int:item_id>/actualizar/', views.actualizar_item_carrito, name='actualizar_item_carrito'),
+    path('carrito/item/<int:item_id>/eliminar/', views.eliminar_item_carrito, name='eliminar_item_carrito'),
+    path('carrito/solicitar/', views.solicitar_apartado, name='solicitar_apartado'),
 ]
