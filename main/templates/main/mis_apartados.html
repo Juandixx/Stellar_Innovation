@@ -1,0 +1,88 @@
+
+{% extends 'main/base.html' %}
+
+{% block title %}Mis apartados - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="mis-apartados">
+
+    <div class="apartados-encabezado">
+        <div>
+            <p class="apartados-eyebrow">STELLAR INNOVATION</p>
+            <h1>Mis apartados</h1>
+            <p>Consulta tus solicitudes y el estado de cada apartado.</p>
+        </div>
+
+        <a href="{% url 'home' %}" class="apartados-volver">
+            Volver al catálogo
+        </a>
+    </div>
+
+    {% if apartados %}
+
+        <div class="apartados-lista">
+
+            {% for apartado in apartados %}
+
+                <article class="apartado-card">
+
+                    <div class="apartado-card-header">
+                        <div>
+                            <h2>Apartado #{{ apartado.id }}</h2>
+                            <span>
+                                Solicitado el {{ apartado.fecha|date:"d/m/Y H:i" }}
+                            </span>
+                        </div>
+
+                        <span class="estado-pill {{ apartado.estado }}">
+                            {{ apartado.get_estado_display }}
+                        </span>
+                    </div>
+
+                    <div class="apartado-productos">
+
+                        {% for detalle in apartado.detalles.all %}
+
+                            <div class="apartado-producto">
+                                <div>
+                                    <strong>{{ detalle.producto.nombre }}</strong>
+                                    <span>Cantidad: {{ detalle.cantidad }}</span>
+                                </div>
+
+                                <span>
+                                    ${{ detalle.subtotal|floatformat:"0g" }}
+                                </span>
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    <div class="apartado-card-footer">
+                        <span>Total del apartado</span>
+                        <strong>${{ apartado.total|floatformat:"0g" }}</strong>
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="apartados-vacio">
+            <h2>Aún no tienes apartados</h2>
+            <p>Cuando realices una solicitud, aparecerá aquí.</p>
+
+            <a href="{% url 'home' %}" class="apartados-volver">
+                Explorar productos
+            </a>
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

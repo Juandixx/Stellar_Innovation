@@ -46,6 +46,12 @@
                 Categorías
             </a>
 
+            <a href="{% url 'admin_apartados' %}"
+                class="admin-nav-link {% if 'admin_apartado' in request.resolver_match.url_name %}activo{% endif %}">
+                <span>▣</span>
+                Gestionar apartados
+            </a>
+
             <a href="{% url 'admin_gestionar_roles' %}"
                 class="admin-nav-link {% if request.resolver_match.url_name == 'admin_gestionar_roles' %}activo{% endif %}">
                 <span>♙</span>

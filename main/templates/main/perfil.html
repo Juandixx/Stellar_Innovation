@@ -41,9 +41,9 @@
 
     <!-- Menú lateral -->
     <nav class="perfil-nav" aria-label="Secciones del perfil">
+        <a href="{% url 'home' %}">Volver al catálogo</a>
         <a href="#datos">Mis datos</a>
         <a href="#seguridad">Seguridad</a>
-        {% if mostrar_historial %}<a href="#historial">Historial de apartados</a>{% endif %}
     </nav>
 
     <div class="perfil-contenido">
@@ -109,49 +109,6 @@
                 </p>
             {% endif %}
         </section>
-
-        <!-- Historial de apartados -->
-        {% if mostrar_historial %}
-        <section class="perfil-card" id="historial">
-            <h2>Historial de apartados</h2>
-            <p class="perfil-sub">Tus solicitudes, de la más reciente a la más antigua.</p>
-
-            {% if apartados %}
-            <div class="perfil-tabla-scroll">
-                <table class="perfil-tabla">
-                    <thead>
-                        <tr>
-                            <th>N°</th>
-                            <th>Fecha</th>
-                            <th>Productos</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for a in apartados %}
-                        <tr>
-                            <td>#{{ a.id }}</td>
-                            <td>{{ a.fecha|date:"d/m/Y H:i" }}</td>
-                            <td>
-                                <ul>
-                                    {% for d in a.detalles.all %}
-                                    <li>{{ d.cantidad }} × {{ d.producto.nombre }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                            <td class="total">${{ a.total|floatformat:"0g" }}</td>
-                            <td><span class="estado-pill {{ a.estado }}">{{ a.get_estado_display }}</span></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-                <p class="perfil-nota">Aún no tienes solicitudes de apartado.</p>
-            {% endif %}
-        </section>
-        {% endif %}
 
     </div>
 </div>

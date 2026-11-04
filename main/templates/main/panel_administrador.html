@@ -53,21 +53,6 @@
 
     </div>
 
-    <h2 class="admin-subtitulo">Últimos apartados</h2>
-
-    <div class="admin-tabla">
-        {% for apartado in apartados_recientes %}
-            <div class="admin-fila">
-                <span>#{{ apartado.id }}</span>
-                <span>{{ apartado.cliente.first_name|default:apartado.cliente.username }}</span>
-                <span>{{ apartado.get_estado_display }}</span>
-                <span>{{ apartado.fecha|date:"d/m/Y H:i" }}</span>
-            </div>
-        {% empty %}
-            <p class="admin-vacio">Todavía no hay apartados registrados.</p>
-        {% endfor %}
-    </div>
-
 </section>
 
 {% endblock %}

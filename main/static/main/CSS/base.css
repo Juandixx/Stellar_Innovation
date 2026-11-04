@@ -833,5 +833,273 @@ body {
     }
 }
 
+/* =========================
+   GESTIÓN DE APARTADOS
+========================= */
 
+.admin-tabla-contenedor {
+    width: 100%;
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e5e5;
+}
+
+.admin-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 950px;
+}
+
+.admin-tabla th,
+.admin-tabla td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.admin-tabla th {
+    background: #111;
+    color: #fff;
+    font-weight: 600;
+}
+
+.admin-tabla tbody tr:hover {
+    background: #f8f8f8;
+}
+
+.apartado-estado {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.estado-pendiente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.estado-entregada {
+    background: #d4edda;
+    color: #155724;
+}
+
+.estado-cancelada {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.apartado-form {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 120px;
+}
+
+.apartado-form select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.btn-apartado-guardar {
+    padding: 8px 12px;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-apartado-guardar:hover {
+    background: #333;
+}
+
+.admin-paginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-top: 25px;
+}
+
+.admin-paginacion a {
+    color: #111;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.admin-paginacion a:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   MIS APARTADOS
+========================= */
+
+.mis-apartados {
+    padding: 35px 0;
+}
+
+.apartados-encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.apartados-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #777;
+}
+
+.apartados-encabezado h1 {
+    font-size: 30px;
+    margin: 8px 0;
+}
+
+.apartados-encabezado p {
+    color: #777;
+}
+
+.apartados-volver {
+    display: inline-block;
+    background: #111;
+    color: #fff;
+    padding: 11px 18px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.apartados-volver:hover {
+    background: #333;
+}
+
+.apartados-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.apartado-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 22px;
+}
+
+.apartado-card-header,
+.apartado-card-footer,
+.apartado-producto {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.apartado-card-header {
+    padding-bottom: 18px;
+    border-bottom: 1px solid #eee;
+}
+
+.apartado-card-header h2 {
+    font-size: 18px;
+    margin: 0 0 6px;
+}
+
+.apartado-card-header span {
+    font-size: 13px;
+    color: #777;
+}
+
+.estado-pill {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.estado-pill.pendiente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.estado-pill.entregada {
+    background: #d4edda;
+    color: #155724;
+}
+
+.estado-pill.cancelada {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.apartado-productos {
+    padding: 15px 0;
+}
+
+.apartado-producto {
+    padding: 10px 0;
+}
+
+.apartado-producto div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.apartado-producto div span {
+    color: #777;
+    font-size: 13px;
+}
+
+.apartado-producto > span {
+    font-weight: 600;
+}
+
+.apartado-card-footer {
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.apartado-card-footer strong {
+    font-size: 19px;
+}
+
+.apartados-vacio {
+    text-align: center;
+    padding: 65px 20px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+}
+
+.apartados-vacio p {
+    color: #777;
+    margin-bottom: 22px;
+}
+
+@media (max-width: 600px) {
+    .apartados-encabezado {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .apartado-card {
+        padding: 16px;
+    }
+
+    .apartado-card-header {
+        align-items: flex-start;
+    }
+}
 

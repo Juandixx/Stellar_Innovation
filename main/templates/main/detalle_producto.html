@@ -32,22 +32,26 @@
         <p class="detalle-texto">{{ producto.caracteristicas|linebreaksbr }}</p>
         {% endif %}
 
+        {% if user.is_authenticated and not user.is_superuser and user.usuario.rol != 'administrador' %}
+
         {% if producto.stock > 0 %}
-        <form method="post" action="{% url 'agregar_al_carrito' producto.id %}" class="form-detalle-carrito">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <form method="post" action="{% url 'agregar_al_carrito' producto.id %}" class="form-detalle-carrito">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
 
-            <div class="cantidad-grupo">
-                <label for="cantidad">Cantidad</label>
-                <input type="number" id="cantidad" name="cantidad" value="1"
-                    min="1" max="{{ producto.stock }}" class="cantidad-input">
-            </div>
+                <div class="cantidad-grupo">
+                    <label for="cantidad">Cantidad</label>
+                    <input type="number" id="cantidad" name="cantidad" value="1"
+                        min="1" max="{{ producto.stock }}" class="cantidad-input">
+                </div>
 
-            <button type="submit" class="btn btn-detalle">Agregar al carrito</button>
-        </form>
+                <button type="submit" class="btn btn-detalle">Agregar al carrito</button>
+            </form>
         {% else %}
-        <button type="button" class="btn btn-detalle" disabled>No disponible</button>
+            <button type="button" class="btn btn-detalle" disabled>No disponible</button>
         {% endif %}
+
+    {% endif %}
     </div>
 </section>
 {% endblock %}

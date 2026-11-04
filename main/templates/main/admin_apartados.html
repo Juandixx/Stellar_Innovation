@@ -1,0 +1,121 @@
+{% extends 'main/base_admin.html' %}
+
+{% block title %}Gestionar apartados - Stellar Innovation{% endblock %}
+
+{% block content %}
+
+<section class="admin-panel">
+
+    <div class="admin-encabezado">
+        <div>
+            <p class="admin-eyebrow">STELLAR INNOVATION</p>
+            <h1>Gestionar apartados</h1>
+            <p>Consulta y administra las solicitudes de los clientes.</p>
+        </div>
+
+        <span class="admin-rol">Administración</span>
+    </div>
+
+    <h2 class="admin-subtitulo">Apartados registrados</h2>
+
+    <div class="admin-tabla-contenedor">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Apartado</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for apartado in apartados %}
+                <tr>
+                    <td>#{{ apartado.id }}</td>
+
+                    <td>
+                        {{ apartado.cliente.first_name|default:apartado.cliente.username }}
+                    </td>
+
+                    <td>{{ apartado.fecha|date:"d/m/Y H:i" }}</td>
+
+                    <td>
+                        {% for detalle in apartado.detalles.all %}
+                            <div>
+                                {{ detalle.producto.nombre }} 
+                                (x{{ detalle.cantidad }})
+                            </div>
+                        {% endfor %}
+                    </td>
+
+                    <td>${{ apartado.total|floatformat:2 }}</td>
+
+                    <td>
+                        <span class="apartado-estado estado-{{ apartado.estado }}">
+                            {{ apartado.get_estado_display }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {% if apartado.estado == 'pendiente' %}
+
+                            <form method="POST"
+                                action="{% url 'admin_apartado_cambiar_estado' apartado.id %}"
+                                class="apartado-form">
+
+                                {% csrf_token %}
+
+                                <select name="estado" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="entregada">Entregar</option>
+                                    <option value="cancelada">Cancelar</option>
+                                </select>
+
+                                <button type="submit" class="btn-apartado-guardar">
+                                    Actualizar
+                                </button>
+
+                            </form>
+
+                        {% else %}
+                            <span class="admin-vacio">Sin acciones</span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="admin-vacio">
+                        Todavía no hay apartados registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="admin-paginacion">
+
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+        {% endif %}
+
+        <span>
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+</section>
+
+{% endblock %}

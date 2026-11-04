@@ -130,9 +130,6 @@ def panel_administrador(request):
         'apartados_pendientes': Apartado.objects.filter(
             estado='pendiente'
         ).count(),
-        'apartados_recientes': Apartado.objects.select_related(
-            'cliente'
-        ).order_by('-fecha')[:5],
     }
 
     return render(
@@ -411,13 +408,13 @@ def admin_producto_eliminar(request, producto_id):
 
 
 # PERFIL DE USUARIO
+
 @login_required
 def perfil(request):
     user = request.user
     perfil_usuario, _ = Usuario.objects.get_or_create(user=user)
     es_admin = user.is_superuser or perfil_usuario.rol == 'administrador'
 
-    # Las cuentas que entran solo con Google no tienen contraseña en el sitio
     puede_cambiar_password = user.has_usable_password()
 
     form_datos = PerfilForm(user=user, perfil=perfil_usuario)
@@ -428,6 +425,7 @@ def perfil(request):
 
         if accion == 'datos':
             form_datos = PerfilForm(request.POST, user=user, perfil=perfil_usuario)
+
             if form_datos.is_valid():
                 form_datos.save()
                 messages.success(request, 'La información ha sido actualizada.')
@@ -435,29 +433,60 @@ def perfil(request):
 
         elif accion == 'password' and puede_cambiar_password:
             form_password = PasswordChangeForm(user, request.POST)
+
             if form_password.is_valid():
                 user = form_password.save()
-                update_session_auth_hash(request, user)   # no cierra la sesión al cambiar la clave
+                update_session_auth_hash(request, user)
                 messages.success(request, 'Tu contraseña ha sido actualizada.')
                 return redirect('perfil')
 
-    # Historial de apartados (el más reciente primero)
-    apartados = list(
-        Apartado.objects.filter(cliente=user).prefetch_related('detalles__producto')
-    )
+    # Estadísticas personales de apartados
+    apartados_usuario = Apartado.objects.filter(cliente=user)
 
-    return render(request, 'main/perfil.html', {
+    contexto = {
         'form_datos': form_datos,
         'form_password': form_password,
         'puede_cambiar_password': puede_cambiar_password,
         'perfil_usuario': perfil_usuario,
         'es_admin': es_admin,
+        'total_apartados': apartados_usuario.count(),
+        'pendientes': apartados_usuario.filter(estado='pendiente').count(),
+    }
+
+    return render(request, 'main/perfil.html', contexto)
+
+
+# =========================
+# MIS APARTADOS
+# =========================
+
+@login_required
+def mis_apartados(request):
+    perfil_usuario, _ = Usuario.objects.get_or_create(user=request.user)
+
+    if request.user.is_superuser or perfil_usuario.rol == 'administrador':
+        return redirect('panel_administrador')
+
+    apartados = Apartado.objects.filter(
+        cliente=request.user
+    ).select_related(
+        'cliente'
+    ).prefetch_related(
+        'detalles__producto'
+    ).order_by('-fecha')
+
+    return render(request, 'main/mis_apartados.html', {
         'apartados': apartados,
-        'total_apartados': len(apartados),
-        'pendientes': sum(1 for a in apartados if a.estado == 'pendiente'),
-        'mostrar_historial': bool(apartados) or not es_admin,
     })
 
+
+
+def _es_administrador(user):
+    perfil = getattr(user, 'usuario', None)
+
+    return user.is_superuser or (
+        perfil and perfil.rol == 'administrador'
+    )
 
 # CARRITO Y SOLICITUD DE APARTADO
 class _StockCambio(Exception):
@@ -487,11 +516,16 @@ def agregar_al_carrito(request, producto_id):
         messages.info(request, 'Inicia sesión para agregar productos al carrito.')
         return redirect('login')
 
+    if _es_administrador(request.user):
+        messages.error(request, 'Los administradores no pueden agregar productos al carrito.')
+        return redirect('home')
+
     producto = get_object_or_404(
         Producto, pk=producto_id, activo=True, categoria__disponible=True
     )
 
     cantidad = _leer_cantidad(request)
+
     if cantidad is None or cantidad < 1:
         messages.error(request, 'Ingresa una cantidad válida (mínimo 1).')
         return redirect(destino)
@@ -500,16 +534,13 @@ def agregar_al_carrito(request, producto_id):
     item = ItemCarrito.objects.filter(carrito=carrito, producto=producto).first()
     en_carrito = item.cantidad if item else 0
 
-    # La cantidad no puede superar el stock disponible (CU6)
     if en_carrito + cantidad > producto.stock:
         disponibles = max(producto.stock - en_carrito, 0)
+
         if producto.stock == 0:
             messages.error(request, f'«{producto.nombre}» está agotado.')
         elif disponibles == 0:
-            messages.error(
-                request,
-                f'Ya tienes en tu carrito las {producto.stock} unidades disponibles de «{producto.nombre}».'
-            )
+            messages.error(request, f'Ya tienes en tu carrito las {producto.stock} unidades disponibles de «{producto.nombre}».')
         elif en_carrito:
             messages.error(
                 request,
@@ -522,6 +553,7 @@ def agregar_al_carrito(request, producto_id):
                 f'Solo hay {producto.stock} unidades disponibles de «{producto.nombre}». '
                 f'La cantidad máxima es {producto.stock}.'
             )
+
         return redirect(destino)
 
     if item:
@@ -536,6 +568,11 @@ def agregar_al_carrito(request, producto_id):
 
 @login_required
 def ver_carrito(request):
+
+    if _es_administrador(request.user):
+        messages.error(request, 'Los administradores no tienen acceso al carrito.')
+        return redirect('panel_administrador')
+
     carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
     items = list(carrito.items.select_related('producto__categoria').order_by('id'))
 
@@ -562,6 +599,11 @@ def ver_carrito(request):
 @login_required
 @require_POST
 def actualizar_item_carrito(request, item_id):
+
+    if _es_administrador(request.user):
+        messages.error(request, 'Los administradores no pueden modificar el carrito.')
+        return redirect('panel_administrador')
+    
     item = get_object_or_404(
         ItemCarrito.objects.select_related('producto'),
         pk=item_id, carrito__cliente=request.user
@@ -590,6 +632,11 @@ def actualizar_item_carrito(request, item_id):
 @login_required
 @require_POST
 def eliminar_item_carrito(request, item_id):
+
+    if _es_administrador(request.user):
+        messages.error(request, 'Los administradores no pueden modificar el carrito.')
+        return redirect('panel_administrador')
+    
     item = get_object_or_404(
         ItemCarrito.objects.select_related('producto'),
         pk=item_id, carrito__cliente=request.user
@@ -603,6 +650,11 @@ def eliminar_item_carrito(request, item_id):
 @login_required
 @require_POST
 def solicitar_apartado(request):
+
+    if _es_administrador(request.user):
+        messages.error(request, 'Los administradores no pueden solicitar apartados.')
+        return redirect('panel_administrador')
+    
     """CU7: verifica el stock de nuevo, registra el apartado y reserva las unidades."""
     carrito = Carrito.objects.filter(cliente=request.user).first()
     items = list(carrito.items.all()) if carrito else []
@@ -666,4 +718,65 @@ def solicitar_apartado(request):
         f'Tu solicitud de apartado #{apartado.pk} quedó registrada. '
         f'Las unidades están reservadas para que las recojas en la tienda.'
     )
-    return redirect(reverse('perfil') + '#historial')
+    return redirect(reverse('mis_apartados'))
+
+
+# =========================
+# GESTIÓN DE APARTADOS
+# =========================
+
+@admin_required
+def admin_apartados(request):
+    apartados = Apartado.objects.select_related(
+        'cliente'
+    ).prefetch_related(
+        'detalles__producto'
+    ).order_by('-fecha')
+
+    paginator = Paginator(apartados, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    contexto = {
+        'apartados': page_obj,
+        'page_obj': page_obj,
+    }
+
+    return render(request, 'main/admin_apartados.html', contexto)
+
+
+@admin_required
+@require_POST
+def admin_apartado_cambiar_estado(request, apartado_id):
+    apartado = get_object_or_404(Apartado, id=apartado_id)
+
+    nuevo_estado = request.POST.get('estado')
+
+    if apartado.estado != 'pendiente':
+        messages.error(
+            request,
+            'Solo se pueden modificar apartados pendientes.'
+        )
+        return redirect('admin_apartados')
+
+    if nuevo_estado == 'cancelada':
+        apartado.cancelar()
+
+        messages.success(
+            request,
+            f'El apartado #{apartado.id} fue cancelado y el stock fue devuelto.'
+        )
+
+    elif nuevo_estado == 'entregada':
+        apartado.estado = 'entregada'
+        apartado.save(update_fields=['estado'])
+
+        messages.success(
+            request,
+            f'El apartado #{apartado.id} fue marcado como entregado.'
+        )
+
+    else:
+        messages.error(request, 'El estado seleccionado no es válido.')
+
+    return redirect('admin_apartados')
