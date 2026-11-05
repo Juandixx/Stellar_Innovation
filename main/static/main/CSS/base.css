@@ -1169,3 +1169,126 @@ body {
     color: white;
 }
 
+
+.fecha-limite-apartado {
+    display: block;
+    margin-top: 8px;
+    color: #d97706;
+    font-size: 13px;
+}
+
+.fecha-limite-apartado strong {
+    font-weight: 700;
+}
+
+
+
+.apartado-fechas {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 5px;
+}
+
+
+.fecha-limite-apartado div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.fecha-limite-apartado div strong:first-child {
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.fecha-limite-apartado div span strong {
+    font-weight: 800;
+}
+
+.fecha-limite-apartado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+    margin-top: 12px;
+    padding: 15px 18px;
+    background: #fff1f0;
+    border: 1px solid #f5b7b1;
+    border-left: 4px solid #dc2626;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+.fecha-limite-titulo {
+    color: #991b1b;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.tiempo-restante {
+    color: #dc2626;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.fecha-limite-detalle {
+    color: #7f1d1d;
+    font-size: 13px;
+}
+
+.fecha-limite-detalle strong {
+    font-weight: 800;
+}
+
+
+.admin-tiempo-recogida {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 130px;
+    padding: 7px 9px;
+    background: #fef2f2;
+    border-left: 3px solid #dc2626;
+    border-radius: 5px;
+}
+
+.admin-tiempo-recogida span {
+    color: #991b1b;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+}
+
+.admin-tiempo-recogida strong {
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.admin-tiempo-recogida small {
+    color: #991b1b;
+    font-size: 9px;
+}
+
+.admin-tiempo-vencido {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 7px 9px;
+    background: #fee2e2;
+    border-left: 3px solid #b91c1c;
+    border-radius: 5px;
+}
+
+.admin-tiempo-vencido strong {
+    color: #b91c1c;
+    font-size: 11px;
+}
+
+.admin-tiempo-vencido small {
+    color: #991b1b;
+    font-size: 9px;
+}

@@ -13,7 +13,6 @@ from django.contrib.auth import logout
 from django.db import transaction
 from django.db.models import F
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.http import require_POST
 from .models import Carrito, ItemCarrito, DetalleApartado
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
@@ -21,7 +20,20 @@ from .forms import PerfilForm
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
+from datetime import timedelta
+from django.utils import timezone
 
+
+def cancelar_apartados_vencidos():
+    ahora = timezone.now()
+
+    apartados_vencidos = Apartado.objects.filter(
+        estado='listo_para_entregar',
+        fecha_limite_recogida__lte=ahora
+    )
+
+    for apartado in apartados_vencidos:
+        apartado.cancelar()
 
 def home(request):
     productos = Producto.objects.filter(
@@ -463,6 +475,7 @@ def perfil(request):
 
 @login_required
 def mis_apartados(request):
+    cancelar_apartados_vencidos()
     perfil_usuario, _ = Usuario.objects.get_or_create(user=request.user)
 
     if request.user.is_superuser or perfil_usuario.rol == 'administrador':
@@ -728,6 +741,7 @@ def solicitar_apartado(request):
 
 @admin_required
 def admin_apartados(request):
+    cancelar_apartados_vencidos()
     apartados = Apartado.objects.select_related(
         'cliente'
     ).prefetch_related(
@@ -741,10 +755,9 @@ def admin_apartados(request):
     contexto = {
         'apartados': page_obj,
         'page_obj': page_obj,
+        'now': timezone.now(),
     }
-
     return render(request, 'main/admin_apartados.html', contexto)
-
 
 @admin_required
 @require_POST
@@ -777,18 +790,32 @@ def admin_apartado_cambiar_estado(request, apartado_id):
                 'No fue posible cancelar este apartado.'
             )
 
-    else:
-        apartado.estado = nuevo_estado
-        apartado.save(update_fields=['estado'])
+    elif nuevo_estado == 'listo_para_entregar':
+        ahora = timezone.now()
 
-        mensajes = {
-            'listo_para_entregar': 'marcado como listo para entregar',
-            'entregada': 'marcado como entregado',
-        }
+        apartado.estado = 'listo_para_entregar'
+        apartado.fecha_listo_para_entregar = ahora
+        apartado.fecha_limite_recogida = ahora + timedelta(days=5)
+
+        apartado.save(update_fields=[
+            'estado',
+            'fecha_listo_para_entregar',
+            'fecha_limite_recogida'
+        ])
 
         messages.success(
             request,
-            f'El apartado #{apartado.id} fue {mensajes[nuevo_estado]}.'
+            f'El apartado #{apartado.id} está listo para entregar. '
+            f'Tiene hasta el {apartado.fecha_limite_recogida.strftime("%d/%m/%Y %H:%M")} para recogerlo.'
+        )
+
+    elif nuevo_estado == 'entregada':
+        apartado.estado = 'entregada'
+        apartado.save(update_fields=['estado'])
+
+        messages.success(
+            request,
+            f'El apartado #{apartado.id} fue marcado como entregado.'
         )
 
     return redirect('admin_apartados')

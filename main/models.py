@@ -117,6 +117,15 @@ class Apartado(models.Model):
 
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='apartados')
     fecha = models.DateTimeField(auto_now_add=True)
+    fecha_listo_para_entregar = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    fecha_limite_recogida = models.DateTimeField(
+        null=True,
+        blank=True
+    )
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
 
     @property

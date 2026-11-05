@@ -30,9 +30,30 @@
                    <div class="apartado-card-header">
                         <div>
                             <h2>Apartado #{{ apartado.id }}</h2>
-                            <span>
-                                Solicitado el {{ apartado.fecha|date:"d/m/Y H:i" }}
-                            </span>
+                            <div class="apartado-fechas">
+                                <span>
+                                    Solicitado el {{ apartado.fecha|date:"d/m/Y H:i" }}
+                                </span>
+
+                                {% if apartado.estado == 'listo_para_entregar' and apartado.fecha_limite_recogida %}
+                                    <div class="fecha-limite-apartado">
+                                        <span class="fecha-limite-titulo">
+                                            TIEMPO PARA RECOGER
+                                        </span>
+
+                                        <strong class="tiempo-restante">
+                                            {{ apartado.fecha_limite_recogida|timeuntil }} restantes
+                                        </strong>
+
+                                        <span class="fecha-limite-detalle">
+                                            Fecha límite:
+                                            <strong>
+                                                {{ apartado.fecha_limite_recogida|date:"d/m/Y - g:i a" }}
+                                            </strong>
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="apartado-acciones-header">
@@ -41,13 +62,16 @@
                             </span>
 
                             {% if apartado.estado == 'pendiente' or apartado.estado == 'listo_para_entregar' %}
-                                <form method="POST"
+                               <form id="form-cancelar-{{ apartado.id }}"
+                                    method="POST"
                                     action="{% url 'cancelar_mi_apartado' apartado.id %}"
-                                    onsubmit="return confirm('¿Estás seguro de que deseas cancelar este apartado?');">
+                                    class="form-cancelar-apartado">
 
                                     {% csrf_token %}
 
-                                    <button type="submit" class="btn-cancelar-apartado">
+                                    <button type="button"
+                                        class="btn-cancelar-apartado"
+                                        onclick="document.getElementById('modal-cancelar-{{ apartado.id }}').showModal();">
                                         Cancelar apartado
                                     </button>
                                 </form>
@@ -69,10 +93,36 @@
                                     ${{ detalle.subtotal|floatformat:"0g" }}
                                 </span>
                             </div>
-
                         {% endfor %}
 
                     </div>
+
+                    <dialog id="modal-cancelar-{{ apartado.id }}" class="modal">
+
+                        <h2>¿Cancelar este apartado?</h2>
+
+                        <p>
+                            ¿Estás seguro de que deseas cancelar el apartado #{{ apartado.id }}?
+                            Las unidades reservadas serán devueltas al inventario.
+                        </p>
+
+                        <div class="modal-acciones">
+
+                            <button type="button"
+                                class="modal-btn cancelar"
+                                onclick="document.getElementById('modal-cancelar-{{ apartado.id }}').close();">
+                                Volver
+                            </button>
+
+                            <button type="submit"
+                                form="form-cancelar-{{ apartado.id }}"
+                                class="modal-btn confirmar">
+                                Sí, cancelar apartado
+                            </button>
+
+                        </div>
+
+                    </dialog>
 
                     <div class="apartado-card-footer">
                         <span>Total del apartado</span>

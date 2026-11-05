@@ -28,6 +28,7 @@
                     <th>Productos</th>
                     <th>Total</th>
                     <th>Estado</th>
+                    <th>Tiempo para recoger</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -58,6 +59,32 @@
                         <span class="apartado-estado estado-{{ apartado.estado }}">
                             {{ apartado.get_estado_display }}
                         </span>
+                    </td>
+
+                    <td>
+                        {% if apartado.estado == 'listo_para_entregar' and apartado.fecha_limite_recogida %}
+
+                            {% if apartado.fecha_limite_recogida > now %}
+                                <div class="admin-tiempo-recogida">
+                                    <span>TIEMPO RESTANTE</span>
+                                    <strong>{{ apartado.fecha_limite_recogida|timeuntil }}</strong>
+                                    <small>
+                                        Límite:
+                                        {{ apartado.fecha_limite_recogida|date:"d/m/Y - g:i a" }}
+                                    </small>
+                                </div>
+                            {% else %}
+                                <div class="admin-tiempo-vencido">
+                                    <strong>¡Plazo vencido!</strong>
+                                    <small>
+                                        {{ apartado.fecha_limite_recogida|date:"d/m/Y - g:i a" }}
+                                    </small>
+                                </div>
+                            {% endif %}
+
+                        {% else %}
+                            <span class="sin-tiempo">—</span>
+                        {% endif %}
                     </td>
 
                     <td>
