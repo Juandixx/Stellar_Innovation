@@ -71,14 +71,32 @@
 
                                 <select name="estado" required>
                                     <option value="">Seleccionar</option>
-                                    <option value="entregada">Entregar</option>
+                                    <option value="listo_para_entregar">Listo para entregar</option>
                                     <option value="cancelada">Cancelar</option>
                                 </select>
 
                                 <button type="submit" class="btn-apartado-guardar">
                                     Actualizar
                                 </button>
+                            </form>
 
+                        {% elif apartado.estado == 'listo_para_entregar' %}
+
+                            <form method="POST"
+                                action="{% url 'admin_apartado_cambiar_estado' apartado.id %}"
+                                class="apartado-form">
+
+                                {% csrf_token %}
+
+                                <select name="estado" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="entregada">Marcar como entregado</option>
+                                    <option value="cancelada">Cancelar</option>
+                                </select>
+
+                                <button type="submit" class="btn-apartado-guardar">
+                                    Actualizar
+                                </button>
                             </form>
 
                         {% else %}

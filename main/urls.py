@@ -37,4 +37,9 @@ urlpatterns = [
     path('administracion/apartados/<int:apartado_id>/estado/', views.admin_apartado_cambiar_estado, name='admin_apartado_cambiar_estado'),
 
     path('mis-apartados/', views.mis_apartados, name='mis_apartados'),
+    path(
+    'mis-apartados/<int:apartado_id>/cancelar/',
+    views.cancelar_mi_apartado,
+    name='cancelar_mi_apartado'
+),
 ]

@@ -1103,3 +1103,69 @@ body {
     }
 }
 
+.form-cancelar-apartado {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+
+
+
+
+
+
+.apartado-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.apartado-acciones-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.apartado-acciones-header form {
+    margin: 0;
+}
+
+.estado-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Listo para entregar */
+.estado-pill.listo_para_entregar {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #93c5fd;
+}
+
+.btn-cancelar-apartado {
+    background: white;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-cancelar-apartado:hover {
+    background: #dc3545;
+    color: white;
+}
+

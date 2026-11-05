@@ -27,7 +27,7 @@
 
                 <article class="apartado-card">
 
-                    <div class="apartado-card-header">
+                   <div class="apartado-card-header">
                         <div>
                             <h2>Apartado #{{ apartado.id }}</h2>
                             <span>
@@ -35,9 +35,24 @@
                             </span>
                         </div>
 
-                        <span class="estado-pill {{ apartado.estado }}">
-                            {{ apartado.get_estado_display }}
-                        </span>
+                        <div class="apartado-acciones-header">
+                            <span class="estado-pill {{ apartado.estado }}">
+                                {{ apartado.get_estado_display }}
+                            </span>
+
+                            {% if apartado.estado == 'pendiente' or apartado.estado == 'listo_para_entregar' %}
+                                <form method="POST"
+                                    action="{% url 'cancelar_mi_apartado' apartado.id %}"
+                                    onsubmit="return confirm('¿Estás seguro de que deseas cancelar este apartado?');">
+
+                                    {% csrf_token %}
+
+                                    <button type="submit" class="btn-cancelar-apartado">
+                                        Cancelar apartado
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div class="apartado-productos">

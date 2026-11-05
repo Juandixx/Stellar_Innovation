@@ -22,6 +22,7 @@ from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
 
+
 def home(request):
     productos = Producto.objects.filter(
         activo=True, categoria__disponible=True
@@ -752,31 +753,72 @@ def admin_apartado_cambiar_estado(request, apartado_id):
 
     nuevo_estado = request.POST.get('estado')
 
-    if apartado.estado != 'pendiente':
-        messages.error(
-            request,
-            'Solo se pueden modificar apartados pendientes.'
-        )
+    # Transiciones permitidas
+    transiciones = {
+        'pendiente': ['listo_para_entregar', 'cancelada'],
+        'listo_para_entregar': ['entregada', 'cancelada'],
+    }
+
+    estados_permitidos = transiciones.get(apartado.estado, [])
+
+    if nuevo_estado not in estados_permitidos:
+        messages.error(request, 'No se puede realizar ese cambio de estado.')
         return redirect('admin_apartados')
 
     if nuevo_estado == 'cancelada':
-        apartado.cancelar()
-
-        messages.success(
-            request,
-            f'El apartado #{apartado.id} fue cancelado y el stock fue devuelto.'
-        )
-
-    elif nuevo_estado == 'entregada':
-        apartado.estado = 'entregada'
-        apartado.save(update_fields=['estado'])
-
-        messages.success(
-            request,
-            f'El apartado #{apartado.id} fue marcado como entregado.'
-        )
+        if apartado.cancelar():
+            messages.success(
+                request,
+                f'El apartado #{apartado.id} fue cancelado y el stock fue devuelto.'
+            )
+        else:
+            messages.error(
+                request,
+                'No fue posible cancelar este apartado.'
+            )
 
     else:
-        messages.error(request, 'El estado seleccionado no es válido.')
+        apartado.estado = nuevo_estado
+        apartado.save(update_fields=['estado'])
+
+        mensajes = {
+            'listo_para_entregar': 'marcado como listo para entregar',
+            'entregada': 'marcado como entregado',
+        }
+
+        messages.success(
+            request,
+            f'El apartado #{apartado.id} fue {mensajes[nuevo_estado]}.'
+        )
 
     return redirect('admin_apartados')
+
+
+@login_required
+@require_POST
+def cancelar_mi_apartado(request, apartado_id):
+
+    perfil_usuario, _ = Usuario.objects.get_or_create(user=request.user)
+
+    if request.user.is_superuser or perfil_usuario.rol == 'administrador':
+        messages.error(request, 'Los administradores no pueden cancelar apartados desde esta sección.')
+        return redirect('panel_administrador')
+
+    apartado = get_object_or_404(
+        Apartado,
+        id=apartado_id,
+        cliente=request.user
+    )
+
+    if apartado.cancelar():
+        messages.success(
+            request,
+            f'El apartado #{apartado.id} fue cancelado correctamente.'
+        )
+    else:
+        messages.error(
+            request,
+            'Este apartado ya no se puede cancelar.'
+        )
+
+    return redirect('mis_apartados')

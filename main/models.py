@@ -110,6 +110,7 @@ class ItemCarrito(models.Model):
 class Apartado(models.Model):
     ESTADOS = (
         ('pendiente', 'Pendiente'),
+        ('listo_para_entregar', 'Listo para entregar'),
         ('entregada', 'Entregada'),
         ('cancelada', 'Cancelada'),
     )
@@ -124,13 +125,22 @@ class Apartado(models.Model):
 
     @transaction.atomic
     def cancelar(self):
-        """Cancela y devuelve las unidades al stock (RF7)."""
-        if self.estado != 'pendiente':
-            return
-        for d in self.detalles.all():
-            Producto.objects.filter(pk=d.producto_id).update(stock=F('stock') + d.cantidad)
+        """Cancela el apartado y devuelve las unidades al stock."""
+
+        if self.estado not in ['pendiente', 'listo_para_entregar']:
+            return False
+
+        for detalle in self.detalles.all():
+            Producto.objects.filter(
+                pk=detalle.producto_id
+            ).update(
+                stock=F('stock') + detalle.cantidad
+            )
+
         self.estado = 'cancelada'
-        self.save()
+        self.save(update_fields=['estado'])
+
+        return True
 
     def __str__(self):
         return f"Apartado #{self.id} - {self.cliente}"
