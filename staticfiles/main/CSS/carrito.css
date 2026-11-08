@@ -1,0 +1,97 @@
+/*Botón "Agregar al carrito" en las tarjetas*/
+.form-carrito { margin-top: auto; }
+.form-carrito .btn { margin-top: 0; }
+
+/*Detalle de producto: cantidad + botón*/
+.form-detalle-carrito {
+    display: flex; align-items: flex-end; flex-wrap: wrap;
+    gap: 12px; margin-top: 32px;
+}
+.form-detalle-carrito .btn-detalle { margin-top: 0; flex: 1 1 200px; max-width: 320px; }
+
+.cantidad-grupo { display: flex; flex-direction: column; gap: 6px; }
+.cantidad-grupo label { font-size: 12px; font-weight: 500; }
+
+.cantidad-input {
+    width: 84px; height: 44px; padding: 0 12px;
+    border: 1px solid #e2e2e2; border-radius: 12px;
+    font: inherit; font-size: 14px; background: #fafafa; outline: none;
+    transition: border-color .15s;
+}
+.cantidad-input:focus { border-color: var(--text); background: #fff; }
+
+/*Página del carrito*/
+.carrito-layout {
+    display: grid; grid-template-columns: 1fr 340px;
+    gap: 32px; align-items: start;
+}
+.carrito-lista { display: flex; flex-direction: column; gap: 14px; }
+
+.carrito-item {
+    display: grid; grid-template-columns: 96px 1fr auto;
+    gap: 18px; align-items: center;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius-card); padding: 14px;
+}
+.carrito-item.con-problema { border-color: #e7b4ae; background: #fffafa; }
+
+.carrito-img {
+    width: 96px; height: 96px; background: var(--surface);
+    border-radius: var(--radius-img); display: grid; place-items: center; overflow: hidden;
+}
+.carrito-img img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; padding: 8px; }
+.carrito-img .sin-imagen { font-size: 10px; color: #bbb; }
+
+.carrito-datos { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.carrito-marca { font-size: 11px; color: var(--muted); }
+.carrito-precio-unit { font-size: 12px; color: #555; }
+.carrito-alerta { font-size: 12px; color: #c0392b; margin-top: 4px; line-height: 1.5; }
+
+.carrito-cantidad { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.carrito-cantidad label { font-size: 12px; color: #555; }
+.carrito-cantidad .cantidad-input { width: 72px; height: 36px; }
+
+.btn-mini {
+    height: 36px; padding: 0 14px; border: 1px solid #d9d9d9; border-radius: 999px;
+    background: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: background .15s;
+}
+.btn-mini:hover { background: var(--pill); }
+
+.carrito-lado { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.carrito-subtotal { font-size: 16px; font-weight: 700; }
+.btn-quitar {
+    border: 0; background: transparent; color: #c0392b;
+    font-size: 12px; cursor: pointer; padding: 4px 0;
+}
+.btn-quitar:hover { text-decoration: underline; }
+
+/*Resumen*/
+.carrito-resumen {
+    position: sticky; top: 88px;
+    border: 1px solid var(--border); border-radius: var(--radius-card); padding: 24px;
+}
+.carrito-resumen h2 { font-size: 18px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 18px; }
+.resumen-fila { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 10px; }
+.resumen-total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 14px; margin: 14px 0; border-top: 1px solid var(--border); font-size: 14px;
+}
+.resumen-total strong { font-size: 22px; letter-spacing: -.02em; }
+.resumen-nota { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+.btn-resumen { height: 44px; font-size: 13px; margin-top: 0; }
+.resumen-seguir { display: block; text-align: center; margin-top: 14px; font-size: 12px; color: var(--muted); }
+.resumen-seguir:hover { color: var(--text); }
+
+.vacio a { color: var(--text); font-weight: 600; text-decoration: underline; }
+
+/*Responsive*/
+@media (max-width: 900px) {
+    .carrito-layout { grid-template-columns: 1fr; }
+    .carrito-resumen { position: static; }
+}
+@media (max-width: 560px) {
+    .carrito-item { grid-template-columns: 80px 1fr; }
+    .carrito-img { width: 80px; height: 80px; }
+    .carrito-lado { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
+}
