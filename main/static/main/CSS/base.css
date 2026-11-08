@@ -827,10 +827,45 @@ body {
 }
 
 @media (max-width: 900px) {
-    .admin-roles-header,
-    .admin-roles-fila {
-        grid-template-columns: 1fr 1fr;
+    .admin-roles-header {
+        display: none;
     }
+
+    .admin-roles-fila {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .admin-roles-fila > * {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .form-cambiar-rol {
+        flex-wrap: wrap;
+    }
+
+    .form-cambiar-rol select {
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
+.admin-roles-fila {
+    grid-template-columns:
+        minmax(0, 1.2fr)
+        minmax(0, 1.5fr)
+        minmax(0, 1fr)
+        minmax(0, 1.3fr);
+}
+
+.admin-roles-fila > * {
+    min-width: 0;
+}
+
+.admin-usuario-info small,
+.admin-roles-fila > span {
+    overflow-wrap: anywhere;
 }
 
 /* =========================
